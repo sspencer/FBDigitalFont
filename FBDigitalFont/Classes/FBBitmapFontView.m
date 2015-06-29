@@ -24,7 +24,6 @@
 
 - (void)setup
 {
-    self.symbols        = @[];
     self.dotType        = FBFontDotTypeSquare;
     self.edgeLength     = 10.0;
     self.margin         = 2.0;
@@ -45,7 +44,6 @@
 - (void)setText:(NSString *)text
 {
     _text = text;
-    self.symbols = [FBFontSymbol symbolsForString:text];
     [self setNeedsDisplay];
 }
 
@@ -65,18 +63,24 @@
     return CGSizeMake(w, h);
 }
 
-- (NSInteger)numberOfHorizontalDot
+- (NSInteger)numberOfHorizontalDotsText
 {
     NSInteger totalDotsFromSymbols = 0;
-    for (NSNumber *number in self.symbols) {
-        FBFontSymbolType symbol = [number integerValue];
-        totalDotsFromSymbols += [FBBitmapFont numberOfDotsWideForSymbol:symbol];
+    for (int i = 0; i < [_text length]; i++) {
+        unichar chr = [_text characterAtIndex:i];
+        totalDotsFromSymbols += [FBBitmapFont numberOfDotsWideForSymbol:chr withSpacing:_spacing];
     }
-    
-    return totalDotsFromSymbols + (self.numberOfPaddingDotsBetweenDigits * ([self.symbols count] - 1)) + self.numberOfLeftPaddingDot + self.numberOfRightPaddingDot;
+
+    return totalDotsFromSymbols + (self.numberOfPaddingDotsBetweenDigits * ([_text length] - 1)) + self.numberOfLeftPaddingDot + self.numberOfRightPaddingDot;
 }
 
-- (NSInteger)numberOfVerticalDot
+// computed for width of frame, not width of text
+- (NSInteger)numberOfHorizontalDots
+{
+    return self.frame.size.width / (self.edgeLength + self.margin);
+}
+
+- (NSInteger)numberOfVerticalDots
 {
     return 7 + self.numberOfTopPaddingDot + self.numberOfBottomPaddingDot;
 }
@@ -84,31 +88,44 @@
 - (void)drawRect:(CGRect)rect
 {
     NSInteger i = 0;
-    
-//    CGFloat l = (self.edgeLength + self.margin) * (5 + self.numberOfPaddingDotsBetweenDigits);
+
     CGFloat x = self.numberOfLeftPaddingDot * (self.edgeLength + self.margin);
     CGFloat y = self.numberOfTopPaddingDot * (self.edgeLength + self.margin);
-    
+
     CGRect r = (CGRect){CGPointZero, [self sizeOfContents]};
     UIGraphicsBeginImageContextWithOptions(r.size, NO, 0.0);
     CGContextRef imgCtx = UIGraphicsGetCurrentContext();
-    
-    for (i = 0; i < [self.symbols count]; i++) {
-        
-        [FBBitmapFont drawSymbol:[[self.symbols objectAtIndex:i] intValue]
-                     withDotType:self.dotType
-                           color:self.onColor
-                      edgeLength:self.edgeLength
-                          margin:self.margin
-                      startPoint:CGPointMake(x, y)
-                       inContext:imgCtx];
-        
-        CGFloat numberWide = [FBBitmapFont numberOfDotsWideForSymbol:[[self.symbols objectAtIndex:i] intValue]];
-        x += (self.edgeLength + self.margin) * (numberWide + self.numberOfPaddingDotsBetweenDigits);
+
+
+    NSUInteger textDotWidth = [self numberOfHorizontalDotsText];
+    NSUInteger backgroundDotWidth = [self numberOfHorizontalDots];
+    NSUInteger dotDelta = backgroundDotWidth - textDotWidth;
+    NSUInteger pixelSize = (self.edgeLength + self.margin);
+    NSUInteger alignmentOffset = 0;
+
+    if (_textAlignment == NSTextAlignmentRight) {
+        alignmentOffset = dotDelta * pixelSize;
+    } else if (_textAlignment == NSTextAlignmentCenter) {
+        alignmentOffset = (NSUInteger)(dotDelta/2) * pixelSize;
     }
+    for (i = 0; i < [_text length]; i++) {
+        unichar chr = [_text characterAtIndex:i];
+        [FBBitmapFont drawSymbol:chr
+                     withDotType:_dotType
+                         spacing:_spacing
+                           color:_onColor
+                      edgeLength:_edgeLength
+                          margin:_margin
+                      startPoint:CGPointMake(x + alignmentOffset, y)
+                       inContext:imgCtx];
+
+        CGFloat numberWide = [FBBitmapFont numberOfDotsWideForSymbol:chr withSpacing:_spacing];
+        x += pixelSize * (numberWide + self.numberOfPaddingDotsBetweenDigits);
+    }
+
     UIImage *digitImage = UIGraphicsGetImageFromCurrentImageContext();
     CGContextClearRect(imgCtx, r);
-    
+
     CGContextSaveGState(imgCtx);
     CGContextSetFillColorWithColor(imgCtx, [UIColor blackColor].CGColor);
     CGContextFillRect(imgCtx, r);
@@ -117,10 +134,10 @@
     CGContextClipToMask(imgCtx, r, digitImage.CGImage);
     CGContextClearRect(imgCtx, r);
     CGContextRestoreGState(imgCtx);
-    
+
     UIImage *inverted = UIGraphicsGetImageFromCurrentImageContext();
     CGContextClearRect(imgCtx, r);
-    
+
     CGContextSaveGState(imgCtx);
     CGContextSetFillColorWithColor(imgCtx, self.innerGlowColor.CGColor);
     CGContextSetShadowWithColor(imgCtx, CGSizeZero, self.innerGlowSize, self.innerGlowColor.CGColor);
@@ -130,25 +147,24 @@
     CGContextClipToMask(imgCtx, r, inverted.CGImage);
     CGContextClearRect(imgCtx, r);
     CGContextRestoreGState(imgCtx);
-    
+
     UIImage *innerShadow = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-    
+
     CGContextRef ctx = UIGraphicsGetCurrentContext();
 
     /* draw base dots */
     CGContextClearRect(ctx, r);
-    [FBBitmapFont drawBackgroundWithDotType:self.dotType 
-                                      color:self.offColor 
-                                 edgeLength:self.edgeLength 
-                                     margin:self.margin 
-                           horizontalAmount:[self numberOfHorizontalDot]
-                             verticalAmount:[self numberOfVerticalDot]
+    [FBBitmapFont drawBackgroundWithDotType:self.dotType
+                                      color:self.offColor
+                                 edgeLength:self.edgeLength
+                                     margin:self.margin
+                           horizontalAmount:backgroundDotWidth
+                             verticalAmount:[self numberOfVerticalDots]
                                   inContext:ctx];
 
     CGContextSaveGState(ctx);
 
-    //CGContextSetShadow(ctx, CGSizeZero, self.glowSize);
     CGContextSetShadowWithColor(ctx, CGSizeZero, self.glowSize, self.glowColor.CGColor);
 
     [digitImage drawAtPoint:CGPointMake(0.0, 0.0)];
@@ -156,6 +172,5 @@
     [innerShadow drawAtPoint:CGPointMake(0.0, 0.0)];
 }
 
+
 @end
-
-

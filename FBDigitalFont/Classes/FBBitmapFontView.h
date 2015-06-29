@@ -2,8 +2,9 @@
 #import "FBBitmapFont.h"
 
 @interface FBBitmapFontView : UIView
-@property (nonatomic, copy) NSArray *symbols;
 @property (nonatomic, assign) FBFontDotType dotType;
+@property (nonatomic, assign) FBFontSpacing spacing;
+@property (nonatomic, assign) NSTextAlignment textAlignment;
 @property (nonatomic, assign) float edgeLength;
 @property (nonatomic, assign) float margin;
 @property (nonatomic, assign) float glowSize;

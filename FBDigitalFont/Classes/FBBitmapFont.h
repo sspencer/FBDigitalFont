@@ -6,6 +6,14 @@ typedef enum {
     FBFontDotTypeCircle
 } FBFontDotType;
 
+
+typedef enum {
+    FBFontSpacingMonospaced,
+    FBFontSpacingVariable,
+    FBFontSpacingNumbers
+} FBFontSpacing;
+
+
 @interface FBBitmapFont : NSObject
 + (void)drawBackgroundWithDotType:(FBFontDotType)dotType
                             color:(UIColor *)color
@@ -15,14 +23,16 @@ typedef enum {
                    verticalAmount:(CGFloat)verticalAmount
                         inContext:(CGContextRef)ctx;
 
-+ (void)drawSymbol:(FBFontSymbolType)symbol
++ (void)drawSymbol:(unichar)symbol
        withDotType:(FBFontDotType)dotType
+           spacing:(FBFontSpacing)spacing
              color:(UIColor *)color
         edgeLength:(CGFloat)edgeLength
             margin:(CGFloat)margin
         startPoint:(CGPoint)startPoint
          inContext:(CGContextRef)ctx;
 
-+ (NSInteger)numberOfDotsWideForSymbol:(FBFontSymbolType)symbol;
++ (NSInteger)numberOfDotsWideForSymbol:(unichar)symbol
+                           withSpacing:(FBFontSpacing)spacing;
 
 @end
