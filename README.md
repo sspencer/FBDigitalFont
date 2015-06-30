@@ -10,16 +10,16 @@ This library includes some kind of digital styled font drawer. They're not TTF f
 
 ![BitmapFont](http://static.squarespace.com/static/51c2c539e4b032aad7050f2e/t/5294a08ee4b080890ab2d599/1385472143725/FBFontBitmap.png?format=1500w "BitmapFont")
 
-supporting 
+supporting
 ```
-A-Z, 0-9, !:
+7-bit ASCII (char codes 32 - 126) plus any character can be customized
 ```
 
 ### LCD Font
 
 ![LCDFont](http://static.squarespace.com/static/51c2c539e4b032aad7050f2e/t/5294a0aae4b0f601b40f61a0/1385472171287/FBFontLCD.png?format=1500w "LCDFont")
 
-supporting 
+supporting
 ```
 0-9, dash
 ```
@@ -28,7 +28,7 @@ supporting
 
 ![SquareFont](http://static.squarespace.com/static/51c2c539e4b032aad7050f2e/t/5294a0bfe4b02cc5320e5d8e/1385472192323/FBFontSquare.png?format=1500w "SquareFont")
 
-supporting 
+supporting
 ```
 A-Z, 0-9, dash
 ```
@@ -53,11 +53,11 @@ If you use CocoaPods, add the following line to your Podfile
 pod 'FBDigitalFont'
 ```
 
-or directly git clone or download from this page. 
+or directly git clone or download from this page.
 
 ## IMPLEMENTATION
 
-This includes some UIView classes which is customized to handle these fonts easily. 
+This includes some UIView classes which is customized to handle these fonts easily.
 
 - FBBitmapFontView
 - FBLCDFontView
@@ -208,5 +208,5 @@ See [FBGlowLabel](http://github.com/lyokato/fbglowlabel "FBGlowLabel")
 
 ## FOR MORE DETAIL
 
-This repository includes demo project, so you can dig into it for more details. 
+This repository includes demo project, so you can dig into it for more details.
 
