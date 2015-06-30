@@ -110,6 +110,14 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
 
 @implementation FBBitmapFont
 
++ (void)setCustomSymbol:(unichar)symbol bitmask:(unichar[BITMAP_WIDTH])bitmask {
+    symbol = CLAMP(symbol);
+    for (int i = 0; i < BITMAP_WIDTH; i++) {
+        BitmapFont[symbol][i] = bitmask[i];
+    }
+}
+
+
 + (void)drawBackgroundWithDotType:(FBFontDotType)dotType
                             color:(UIColor *)color
                        edgeLength:(CGFloat)edgeLength
@@ -144,9 +152,9 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
             case 44:  // ','
             case 46:  // '.'
             case 58:  // ':'
-                return YES;
-            default:
                 return NO;
+            default:
+                return YES;
         }
     }
 
@@ -175,7 +183,6 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
         return;
     }
 
-    //NSArray *coord = [self coordForSymbol:symbol];
     unsigned char *fontmask = BitmapFont[symbol];
 
     CGContextSetFillColorWithColor(ctx, color.CGColor);
@@ -217,7 +224,7 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
 + (NSInteger)numberOfDotsWideForSymbol:(unichar)symbol withSpacing:(FBFontSpacing)spacing
 {
     int width = BITMAP_WIDTH;
-
+    unichar orig = symbol;
     BOOL monospaced = [self isSymbolMonospaced:symbol withSpacing:spacing];
     if (!monospaced) {
         int i = 0;

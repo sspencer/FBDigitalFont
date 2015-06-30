@@ -35,4 +35,7 @@ typedef enum {
 + (NSInteger)numberOfDotsWideForSymbol:(unichar)symbol
                            withSpacing:(FBFontSpacing)spacing;
 
+// Replace default ASCII character with a different rendering
++ (void)setCustomSymbol:(unichar)symbol bitmask:(unichar[5])bitmask;
+
 @end

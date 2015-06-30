@@ -56,8 +56,8 @@
 
 - (CGSize)sizeOfContents
 {
-    NSInteger vd = [self numberOfVerticalDot];
-    NSInteger hd = [self numberOfHorizontalDot];
+    NSInteger vd = [self numberOfVerticalDots];
+    NSInteger hd = [self numberOfHorizontalDots];
     CGFloat w = hd * self.edgeLength + (hd - 1) * self.margin;
     CGFloat h = vd * self.edgeLength + (vd - 1) * self.margin;
     return CGSizeMake(w, h);
@@ -108,19 +108,27 @@
     } else if (_textAlignment == NSTextAlignmentCenter) {
         alignmentOffset = (NSUInteger)(dotDelta/2) * pixelSize;
     }
+
     for (i = 0; i < [_text length]; i++) {
-        unichar chr = [_text characterAtIndex:i];
-        [FBBitmapFont drawSymbol:chr
+        unichar ch = [_text characterAtIndex:i];
+        CGFloat numberWide = [FBBitmapFont numberOfDotsWideForSymbol:ch withSpacing:_spacing];
+        if (ch == 58) {
+            x = x-6;
+        }
+        CGPoint startPoint = CGPointMake(x + alignmentOffset, y);
+        [FBBitmapFont drawSymbol:ch
                      withDotType:_dotType
                          spacing:_spacing
                            color:_onColor
                       edgeLength:_edgeLength
                           margin:_margin
-                      startPoint:CGPointMake(x + alignmentOffset, y)
+                      startPoint:startPoint
                        inContext:imgCtx];
 
-        CGFloat numberWide = [FBBitmapFont numberOfDotsWideForSymbol:chr withSpacing:_spacing];
-        x += pixelSize * (numberWide + self.numberOfPaddingDotsBetweenDigits);
+        x += pixelSize * (numberWide + _numberOfPaddingDotsBetweenDigits);
+        if (ch == 58) {
+            x = x+6;
+        }
     }
 
     UIImage *digitImage = UIGraphicsGetImageFromCurrentImageContext();
