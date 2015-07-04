@@ -7,8 +7,19 @@
 
 /*
  * Display text using a 5x7 bitmap font in ASCII letters.
- * First byte is lower 3 pixels (7 in 0x7f and the single point in a V), 
- * second byte is upper 4 pixels (the 2 points in the V).
+ * High order byte (left side and most significant bits) specify lower 3 bits of character
+ * while the low order byte draws the top 4 bits.  The most significant bit is ignored.
+ *
+ * For example:
+ *    { 0x20,0x40,0x41,0x3f,0x01 },   // J 0x4a 74
+ *
+ *    01: - - X X X
+ *    02: - - - X -
+ *    04: - - - X -
+ *    08: - - - X -
+ *    10: - - - X -
+ *    20: X - - X -
+ *    40: - X X - -
  */
 static unsigned char BitmapFont[][BITMAP_WIDTH] = {
     { 0x00,0x00,0x00,0x00,0x00 },   //   0x20 32
@@ -110,6 +121,12 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
 
 @implementation FBBitmapFont
 
+/*
+ * Override a symbol.  To change the greater than symbol into a solid right arrow.
+ * For example:
+ *    static unichar solidRightArrow[5] = { 0x7f,0x3e,0x1c,0x08,0x00 };
+ *    [FBBitmapFont setCustomSymbol:62 bitmask:solidRightArrow];
+ */
 + (void)setCustomSymbol:(unichar)symbol bitmask:(unichar[BITMAP_WIDTH])bitmask {
     symbol = CLAMP(symbol);
     for (int i = 0; i < BITMAP_WIDTH; i++) {
@@ -117,7 +134,9 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
     }
 }
 
-
+/*
+ * Draw the background with specified dot type.
+ */
 + (void)drawBackgroundWithDotType:(FBFontDotType)dotType
                             color:(UIColor *)color
                        edgeLength:(CGFloat)edgeLength
@@ -135,7 +154,7 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
     CGRect r;
     for (i = 0; i < verticalAmount; i++) {
         for (j = 0; j < horizontalAmount; j++) {
-            r = CGRectMake(j * l, i * l, edgeLength, edgeLength);
+            r = CGRectMake(j * l, i * l, edgeLength /* CRT Mode +1*/, edgeLength);
             if (dotType == FBFontDotTypeSquare) {
                 CGContextFillRect(ctx, r);
             } else {
@@ -145,7 +164,80 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
     }
 }
 
-//44 46 58
+
+
+/*
+ * Draw a single ASCII character.
+ */
++ (void)drawSymbol:(unichar)symbol
+       withDotType:(FBFontDotType)dotType
+           spacing:(FBFontSpacing)spacing
+             color:(UIColor *)color
+        edgeLength:(CGFloat)edgeLength
+            margin:(CGFloat)margin
+        startPoint:(CGPoint)startPoint
+         inContext:(CGContextRef)ctx
+{
+    float x = 0;
+    float y = 0;
+    float l = edgeLength + margin;
+
+    // CAREFUL - must call before isSymbolMonospaced before CLAMP
+    BOOL monospaced = [self isSymbolMonospaced:symbol withSpacing:spacing];
+
+    symbol = CLAMP(symbol);
+
+    // It's a SPACE - Nothing to draw, nothing to do
+    if (symbol == 0) {
+        return;
+    }
+
+    unsigned char *fontmask = BitmapFont[symbol];
+
+    CGContextSetFillColorWithColor(ctx, color.CGColor);
+
+
+    BOOL leadingEdge = YES;
+
+    // Draw column (vertical) from top to bottom
+    CGRect frm;
+    int c = 0, n;
+    for (n = 0; n < BITMAP_WIDTH; n++) {
+        unsigned char slice = fontmask[n];
+        // Advance to next column of pixels without advancing cursor horizontally
+        // for variable spacing
+        if (monospaced == NO && leadingEdge && slice == 0) {
+            continue;
+        }
+
+        leadingEdge = NO;
+
+        // If slice is 0, there's nothing to draw
+        if (slice > 0) {
+
+            for (int r = 0, shift = 1; shift < 128; shift <<= 1, r++) {
+                if (shift & slice) {
+                    y = startPoint.y + r * l;
+                    x = startPoint.x + c * l;
+                    //CRTMode x = x - c;
+                    frm = CGRectMake(x, y, edgeLength, edgeLength);
+                    if (dotType == FBFontDotTypeSquare) {
+                        CGContextFillRect(ctx, frm);
+                    } else {
+                        CGContextFillEllipseInRect(ctx, frm);
+                    }
+                }
+            }
+        }
+        c++;
+    }
+}
+
+/*
+ * Determine if a character should be drawn 'monospaced' based on the spacing mode.
+ * You must call this method before CLAMPing.
+ * The following characters are drawn variable widthed in 'number' mode: ('.', ',', ':').
+ */
 + (BOOL)isSymbolMonospaced:(unichar)ch withSpacing:(FBFontSpacing)spacing {
     if (spacing == FBFontSpacingNumbers) {
         switch(ch) {
@@ -161,89 +253,28 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
     return spacing == FBFontSpacingMonospaced;
 }
 
-+ (void)drawSymbol:(unichar)symbol
-       withDotType:(FBFontDotType)dotType
-           spacing:(FBFontSpacing)spacing
-             color:(UIColor *)color
-        edgeLength:(CGFloat)edgeLength
-            margin:(CGFloat)margin
-        startPoint:(CGPoint)startPoint
-         inContext:(CGContextRef)ctx
-{
-    float x = 0;
-    float y = 0;
-    float l = edgeLength + margin;
-
-    symbol = CLAMP(symbol);
-
-    BOOL monospaced = [self isSymbolMonospaced:symbol withSpacing:spacing];
-
-    // It's a SPACE - Nothing to draw, nothing to do
-    if (symbol == 0) {
-        return;
-    }
-
-    unsigned char *fontmask = BitmapFont[symbol];
-
-    CGContextSetFillColorWithColor(ctx, color.CGColor);
-    BOOL leadingEdge = YES;
-
-    // Draw column (vertical) from top to bottom
-    CGRect frm;
-    int c = 0, n, r;
-    for (n = 0; n < BITMAP_WIDTH; n++) {
-        unsigned char slice = fontmask[n];
-        // Advance to next column of pixels without advancing cursor horizontally
-        // for variable spacing
-        if (monospaced == NO && leadingEdge && slice == 0) {
-            continue;
-        }
-
-        leadingEdge = NO;
-
-        if (slice > 0) {
-            // draw 7 vertical dot
-            r = 0;
-            for (int r = 0, shift = 1; shift < 128; shift <<= 1, r++) {
-                if (shift & slice) {
-                    y = startPoint.y + r * l;
-                    x = startPoint.x + c * l;
-                    frm = CGRectMake(x, y, edgeLength, edgeLength);
-                    if (dotType == FBFontDotTypeSquare) {
-                        CGContextFillRect(ctx, frm);
-                    } else {
-                        CGContextFillEllipseInRect(ctx, frm);
-                    }
-                }
-            }
-        }
-        c++;
-    }
-}
-
 + (NSInteger)numberOfDotsWideForSymbol:(unichar)symbol withSpacing:(FBFontSpacing)spacing
 {
     int width = BITMAP_WIDTH;
-    unichar orig = symbol;
+
+    // CAREFUL - must call before isSymbolMonospaced before CLAMP
     BOOL monospaced = [self isSymbolMonospaced:symbol withSpacing:spacing];
-    if (!monospaced) {
+    symbol = CLAMP(symbol);
+
+    if (symbol > 0 && !monospaced) {
+
+        // Count empty columns on left edge of character
         int i = 0;
-        symbol = CLAMP(symbol);
+        while(i < BITMAP_WIDTH && BitmapFont[symbol][i] == 0) {
+            i++;
+            width--;
+        }
 
-        // ignore SPACE which is full width but all zeros so
-        // this algorithm doesn't work on it
-        if (symbol > 0) {
-            i = 0;
-            while(i < BITMAP_WIDTH && BitmapFont[symbol][i] == 0) {
-                i++;
-                width--;
-            }
-
-            i = BITMAP_WIDTH-1;
-            while (i > 0 && BitmapFont[symbol][i] == 0) {
-                i--;
-                width--;
-            }
+        // Count empty columns on right edge of character
+        i = BITMAP_WIDTH-1;
+        while (i > 0 && BitmapFont[symbol][i] == 0) {
+            i--;
+            width--;
         }
     }
     

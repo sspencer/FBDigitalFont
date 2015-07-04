@@ -34,17 +34,18 @@
     [super viewDidLoad];
     self.view.backgroundColor = UIColor.blackColor;
     [self setupBitmapFont];
-    /*
+
     [self setupLCDFont];
     [self setupSquareFont];
     [self setupSquareFont2];
-     */
-    
+
+
     [NSTimer scheduledTimerWithTimeInterval:1.0
                                      target:self
                                    selector:@selector(tick:)
                                    userInfo:nil
                                     repeats:YES];
+
 }
 
 -(void)tick:(NSTimer *)timer {
@@ -63,7 +64,7 @@
 
 - (void)setupBitmapFont
 {
-    CGRect frame = CGRectMake(10, 60, 300, 50);
+    CGRect frame = CGRectMake(10, 60, 320, 50);
 
     static unichar solidRightArrow[5] = { 0x7f,0x3e,0x1c,0x08,0x00 };
     [FBBitmapFont setCustomSymbol:62 bitmask:solidRightArrow];
@@ -81,7 +82,6 @@
     self.bfv.innerGlowSize = 3.0;
     self.bfv.edgeLength = 4.0;
     self.bfv.textAlignment = NSTextAlignmentRight;
-
 
     [self.view addSubview:self.bfv];
     [self.bfv resetSize];

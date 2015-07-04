@@ -112,10 +112,8 @@
     for (i = 0; i < [_text length]; i++) {
         unichar ch = [_text characterAtIndex:i];
         CGFloat numberWide = [FBBitmapFont numberOfDotsWideForSymbol:ch withSpacing:_spacing];
-        if (ch == 58) {
-            x = x-6;
-        }
         CGPoint startPoint = CGPointMake(x + alignmentOffset, y);
+        //NSLog(@"ch=%c x=%0.1f nw=%0.1f", ch, x, numberWide);
         [FBBitmapFont drawSymbol:ch
                      withDotType:_dotType
                          spacing:_spacing
@@ -126,9 +124,6 @@
                        inContext:imgCtx];
 
         x += pixelSize * (numberWide + _numberOfPaddingDotsBetweenDigits);
-        if (ch == 58) {
-            x = x+6;
-        }
     }
 
     UIImage *digitImage = UIGraphicsGetImageFromCurrentImageContext();
