@@ -140,21 +140,23 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
 + (void)drawBackgroundWithDotType:(FBFontDotType)dotType
                             color:(UIColor *)color
                        edgeLength:(CGFloat)edgeLength
-                           margin:(CGFloat)margin
+                          hmargin:(CGFloat)hmargin
+                          vmargin:(CGFloat)vmargin
                  horizontalAmount:(CGFloat)horizontalAmount
                    verticalAmount:(CGFloat)verticalAmount
                         inContext:(CGContextRef)ctx
 {
     NSInteger i = 0;
     NSInteger j = 0;
-    float l = edgeLength + margin;
+    float lh = edgeLength + hmargin;
+    float lv = edgeLength + vmargin;
 
     CGContextSetFillColorWithColor(ctx, color.CGColor);
 
     CGRect r;
     for (i = 0; i < verticalAmount; i++) {
         for (j = 0; j < horizontalAmount; j++) {
-            r = CGRectMake(j * l, i * l, edgeLength /* CRT Mode +1*/, edgeLength);
+            r = CGRectMake(j * lh, i * lv, edgeLength, edgeLength);
             if (dotType == FBFontDotTypeSquare) {
                 CGContextFillRect(ctx, r);
             } else {
@@ -174,13 +176,15 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
            spacing:(FBFontSpacing)spacing
              color:(UIColor *)color
         edgeLength:(CGFloat)edgeLength
-            margin:(CGFloat)margin
+           hmargin:(CGFloat)hmargin
+           vmargin:(CGFloat)vmargin
         startPoint:(CGPoint)startPoint
          inContext:(CGContextRef)ctx
 {
     float x = 0;
     float y = 0;
-    float l = edgeLength + margin;
+    float lh = edgeLength + hmargin;
+    float lv = edgeLength + vmargin;
 
     // CAREFUL - must call before isSymbolMonospaced before CLAMP
     BOOL monospaced = [self isSymbolMonospaced:symbol withSpacing:spacing];
@@ -217,8 +221,8 @@ static unsigned char BitmapFont[][BITMAP_WIDTH] = {
 
             for (int r = 0, shift = 1; shift < 128; shift <<= 1, r++) {
                 if (shift & slice) {
-                    y = startPoint.y + r * l;
-                    x = startPoint.x + c * l;
+                    y = startPoint.y + r * lv;
+                    x = startPoint.x + c * lh;
                     //CRTMode x = x - c;
                     frm = CGRectMake(x, y, edgeLength, edgeLength);
                     if (dotType == FBFontDotTypeSquare) {

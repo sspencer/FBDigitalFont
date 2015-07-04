@@ -18,7 +18,8 @@ typedef enum {
 + (void)drawBackgroundWithDotType:(FBFontDotType)dotType
                             color:(UIColor *)color
                        edgeLength:(CGFloat)edgeLength
-                           margin:(CGFloat)margin
+                          hmargin:(CGFloat)hmargin
+                          vmargin:(CGFloat)vmargin
                  horizontalAmount:(CGFloat)horizontalAmount
                    verticalAmount:(CGFloat)verticalAmount
                         inContext:(CGContextRef)ctx;
@@ -28,7 +29,8 @@ typedef enum {
            spacing:(FBFontSpacing)spacing
              color:(UIColor *)color
         edgeLength:(CGFloat)edgeLength
-            margin:(CGFloat)margin
+           hmargin:(CGFloat)hmargin
+           vmargin:(CGFloat)vmargin
         startPoint:(CGPoint)startPoint
          inContext:(CGContextRef)ctx;
 

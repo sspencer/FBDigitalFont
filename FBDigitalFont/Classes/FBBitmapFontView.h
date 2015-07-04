@@ -6,7 +6,8 @@
 @property (nonatomic, assign) FBFontSpacing spacing;
 @property (nonatomic, assign) NSTextAlignment textAlignment;
 @property (nonatomic, assign) float edgeLength;
-@property (nonatomic, assign) float margin;
+@property (nonatomic, assign) float vmargin;
+@property (nonatomic, assign) float hmargin;
 @property (nonatomic, assign) float glowSize;
 @property (nonatomic, assign) float innerGlowSize;
 @property (nonatomic, assign) NSInteger numberOfLeftPaddingDot;

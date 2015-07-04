@@ -26,7 +26,8 @@
 {
     self.dotType        = FBFontDotTypeSquare;
     self.edgeLength     = 10.0;
-    self.margin         = 2.0;
+    self.hmargin        = 1.0;
+    self.vmargin        = 1.0;
     self.glowSize       = 0.0;
     self.innerGlowSize  = 0.0;
     self.glowColor      = UIColorFromRGB(0xee3300);
@@ -58,8 +59,8 @@
 {
     NSInteger vd = [self numberOfVerticalDots];
     NSInteger hd = [self numberOfHorizontalDots];
-    CGFloat w = hd * self.edgeLength + (hd - 1) * self.margin;
-    CGFloat h = vd * self.edgeLength + (vd - 1) * self.margin;
+    CGFloat w = hd * self.edgeLength + (hd - 1) * _hmargin;
+    CGFloat h = vd * self.edgeLength + (vd - 1) * _vmargin;
     return CGSizeMake(w, h);
 }
 
@@ -77,7 +78,7 @@
 // computed for width of frame, not width of text
 - (NSInteger)numberOfHorizontalDots
 {
-    return self.frame.size.width / (self.edgeLength + self.margin);
+    return self.frame.size.width / (_edgeLength + _hmargin);
 }
 
 - (NSInteger)numberOfVerticalDots
@@ -89,8 +90,8 @@
 {
     NSInteger i = 0;
 
-    CGFloat x = self.numberOfLeftPaddingDot * (self.edgeLength + self.margin);
-    CGFloat y = self.numberOfTopPaddingDot * (self.edgeLength + self.margin);
+    CGFloat x = self.numberOfLeftPaddingDot * (self.edgeLength + _hmargin);
+    CGFloat y = self.numberOfTopPaddingDot * (self.edgeLength + _vmargin);
 
     CGRect r = (CGRect){CGPointZero, [self sizeOfContents]};
     UIGraphicsBeginImageContextWithOptions(r.size, NO, 0.0);
@@ -100,7 +101,7 @@
     NSUInteger textDotWidth = [self numberOfHorizontalDotsText];
     NSUInteger backgroundDotWidth = [self numberOfHorizontalDots];
     NSUInteger dotDelta = backgroundDotWidth - textDotWidth;
-    NSUInteger pixelSize = (self.edgeLength + self.margin);
+    NSUInteger pixelSize = (_edgeLength + _hmargin);
     NSUInteger alignmentOffset = 0;
 
     if (_textAlignment == NSTextAlignmentRight) {
@@ -119,7 +120,8 @@
                          spacing:_spacing
                            color:_onColor
                       edgeLength:_edgeLength
-                          margin:_margin
+                          hmargin:_hmargin
+                         vmargin:_vmargin
                       startPoint:startPoint
                        inContext:imgCtx];
 
@@ -161,7 +163,8 @@
     [FBBitmapFont drawBackgroundWithDotType:self.dotType
                                       color:self.offColor
                                  edgeLength:self.edgeLength
-                                     margin:self.margin
+                                    hmargin:_hmargin
+                                    vmargin:_vmargin
                            horizontalAmount:backgroundDotWidth
                              verticalAmount:[self numberOfVerticalDots]
                                   inContext:ctx];

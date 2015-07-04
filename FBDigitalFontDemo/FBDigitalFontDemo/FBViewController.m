@@ -76,7 +76,8 @@
     self.bfv.numberOfTopPaddingDot    = 1;
     self.bfv.numberOfLeftPaddingDot   = 2;
     self.bfv.numberOfRightPaddingDot  = 2;
-    self.bfv.margin = 1;
+    self.bfv.vmargin = 1;
+    self.bfv.hmargin = 1;
     self.bfv.spacing = FBFontSpacingNumbers;
     self.bfv.glowSize = 20.0;
     self.bfv.innerGlowSize = 3.0;
